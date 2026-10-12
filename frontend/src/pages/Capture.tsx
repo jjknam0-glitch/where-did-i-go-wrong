@@ -210,7 +210,7 @@ export default function Capture() {
 
       {state.settings.showCameraMetrics && metrics && cam === 'live' && (
         <pre className="absolute left-3 top-24 z-10 rounded-xl bg-black/60 p-2 font-mono text-[10px] leading-tight">
-{`bright ${metrics.brightness.toFixed(0)}  glare ${(metrics.glare * 100).toFixed(1)}%
+{`bright ${metrics.brightness.toFixed(0)}/${metrics.paperBrightness.toFixed(0)}  glare ${(metrics.glare * 100).toFixed(1)}%
 paper  ${(metrics.paperArea * 100).toFixed(0)}%  center ${metrics.offCenter.toFixed(2)}
 motion ${metrics.motion.toFixed(1)}  sharp ${metrics.sharpness.toFixed(0)}
 ink    ${(metrics.ink * 100).toFixed(2)}%  edge ${(metrics.inkAtEdge * 100).toFixed(0)}%`}

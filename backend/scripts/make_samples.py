@@ -192,9 +192,9 @@ def render_page(sample, rng):
     return page
 
 
-def photograph(page, rng):
+def photograph(page, rng, margin=140, light_level=1.08, blur=None, size=(1500, 1950)):
     """Place the page on a desk with a perspective tilt, light falloff, blur and noise."""
-    PW, PH = 1500, 1950
+    PW, PH = size
     desk = np.zeros((PH, PW, 3), np.float32)
     base = np.array(rng.choice([(110, 78, 52), (70, 72, 78), (130, 112, 92)]), np.float32)
     yy, xx = np.mgrid[0:PH, 0:PW]
@@ -205,7 +205,6 @@ def photograph(page, rng):
 
     import cv2
     w, h = page.size
-    margin = 140
     dst = np.array([
         [margin + rng.uniform(-40, 60), margin + rng.uniform(-30, 60)],
         [PW - margin + rng.uniform(-60, 40), margin + rng.uniform(-30, 60)],
@@ -223,12 +222,24 @@ def photograph(page, rng):
     # Uneven light: a soft gradient plus a vignette.
     cx, cy = rng.uniform(0.3, 0.7) * PW, rng.uniform(0.2, 0.6) * PH
     dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2) / math.hypot(PW, PH)
-    light = 1.08 - 0.45 * dist
+    light = light_level - 0.45 * dist
     out = np.clip(out.astype(np.float32) * light[..., None], 0, 255)
     out += rng.uniform(2, 5) * np.random.default_rng(rng.randint(0, 10 ** 6)).standard_normal(out.shape)
     out = np.clip(out, 0, 255).astype(np.uint8)
-    img = Image.fromarray(out).filter(ImageFilter.GaussianBlur(radius=rng.uniform(0.6, 1.1)))
+    radius = blur if blur is not None else rng.uniform(0.6, 1.1)
+    img = Image.fromarray(out).filter(ImageFilter.GaussianBlur(radius=radius))
     return img
+
+
+def variant(sample: dict, seed: int):
+    """A randomized photo of a sample: page size in frame, tilt, light and blur vary."""
+    rng = random.Random(seed)
+    page = render_page(sample, rng)
+    margin = rng.choice([60, 140, 260, 380])
+    light = rng.uniform(0.75, 1.1)
+    blur = rng.uniform(0.4, 1.6)
+    size = rng.choice([(1500, 1950), (1950, 1500), (1200, 1600)])
+    return photograph(page, rng, margin=margin, light_level=light, blur=blur, size=size)
 
 
 def main():

@@ -84,3 +84,27 @@ def test_group_problems():
     boxes = [(0, 0, 10, 40), (0, 60, 10, 100), (0, 300, 10, 340), (0, 360, 10, 400)]
     assert group_problems(boxes) == [0, 0, 1, 1]
     assert group_problems([(0, 0, 1, 1)]) == [0]
+
+
+def _variants():
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
+    import make_samples
+    out = []
+    for i, sample in enumerate(make_samples.SAMPLES):
+        for k in range(4):
+            out.append((sample, 7000 + i * 10 + k))
+    return out, make_samples
+
+
+VARIANTS, MS = _variants()
+
+
+@pytest.mark.parametrize("sample,seed", VARIANTS, ids=[f"{s['id']}-{seed}" for s, seed in VARIANTS])
+def test_randomized_photos_split_correctly(sample, seed):
+    img = MS.variant(sample, seed)
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85)
+    expected = len([l for l in sample["lines"] if "gap" not in l])
+    res = process_image(buf.getvalue(), "page" if sample.get("page") else "problem")
+    assert len(res.lines) == expected

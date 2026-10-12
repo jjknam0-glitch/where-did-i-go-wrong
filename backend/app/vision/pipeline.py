@@ -118,7 +118,7 @@ def find_paper(rgb: np.ndarray):
     best = None
     for c in candidates:
         area = cv2.contourArea(c)
-        if area < 0.18 * area_total:
+        if area < 0.07 * area_total:
             continue
         peri = cv2.arcLength(c, True)
         for eps in (0.02, 0.03, 0.045):
@@ -131,13 +131,21 @@ def find_paper(rgb: np.ndarray):
                     best = (a, approx)
                 break
     if best is None:
+        # Wavy or partly shadowed edges: fall back to the bright region's rotated rectangle.
+        for c in sorted(cnts2, key=cv2.contourArea, reverse=True)[:1]:
+            area = cv2.contourArea(c)
+            rect = cv2.minAreaRect(c)
+            rect_area = rect[1][0] * rect[1][1]
+            if 0.07 * area_total <= area <= 0.95 * area_total and rect_area > 0 and area / rect_area > 0.85:
+                best = (area, cv2.boxPoints(rect).astype(np.float32))
+    if best is None:
         return None
     quad = order_points(best[1]) / scale
     # Reject degenerate shapes (very skinny or bow-tied quads).
     tl, tr, br, bl = quad
     wtop, wbot = np.linalg.norm(tr - tl), np.linalg.norm(br - bl)
     hl, hr = np.linalg.norm(bl - tl), np.linalg.norm(br - tr)
-    if min(wtop, wbot, hl, hr) < 0.15 * max(h, w):
+    if min(wtop, wbot, hl, hr) < 0.1 * max(h, w):
         return None
     return quad
 
@@ -165,28 +173,82 @@ def enhance(rgb: np.ndarray):
     return g, ink
 
 
-def remove_ruled_lines(ink: np.ndarray):
+def page_extent(gray: np.ndarray) -> tuple[int, int]:
+    """Width and height of the paper inside the image (the whole image after a warp)."""
+    h, w = gray.shape
+    _, bright = cv2.threshold(cv2.GaussianBlur(gray, (5, 5), 0), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    n, _lab, stats, _c = cv2.connectedComponentsWithStats(bright, connectivity=8)
+    if n <= 1:
+        return w, h
+    i = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    bw, bh = int(stats[i, cv2.CC_STAT_WIDTH]), int(stats[i, cv2.CC_STAT_HEIGHT])
+    if bw < 0.2 * w or bh < 0.2 * h:
+        return w, h
+    return bw, bh
+
+
+def remove_ruled_lines(ink: np.ndarray, page_w: int | None = None, page_h: int | None = None,
+                       vertical: bool = True):
     """Remove notebook / grid lines. Returns (clean_ink, removed_mask)."""
     h, w = ink.shape
-    hk = cv2.getStructuringElement(cv2.MORPH_RECT, (max(40, w // 20), 1))
+    pw = page_w or w
+    ph = page_h or h
+    hk = cv2.getStructuringElement(cv2.MORPH_RECT, (max(30, pw // 20), 1))
     horiz = cv2.morphologyEx(ink, cv2.MORPH_OPEN, hk)
     # Only rows where long segments cover a good part of the page are ruled lines
-    # (this keeps long fraction bars and minus signs).
-    coverage = (horiz > 0).sum(axis=1) / float(w)
+    # (this keeps long fraction bars and minus signs). Slightly slanted lines
+    # spread over a few rows, so measure coverage on a vertically smeared copy.
+    smeared = cv2.dilate(horiz, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 5)))
+    coverage = (smeared > 0).sum(axis=1) / float(pw)
     rows = coverage > 0.3
-    rows = np.convolve(rows.astype(np.uint8), np.ones(3, np.uint8), "same") > 0
+    rows = np.convolve(rows.astype(np.uint8), np.ones(5, np.uint8), "same") > 0
+    # Notebook paper has several parallel lines; a single long stroke (a stylus
+    # drawing, a long fraction bar) is writing.
+    if len(_runs(rows)) < 2:
+        rows[:] = False
     horiz_mask = np.zeros_like(ink)
     horiz_mask[rows, :] = horiz[rows, :]
     horiz_mask = cv2.dilate(horiz_mask, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3)))
+    # Blur can break a ruled line into dashes that the long kernel misses. Inside
+    # the ruled-line rows, also remove short horizontal dashes that have nothing
+    # directly above or below them (so character strokes crossing the line stay).
+    if rows.any():
+        band = np.zeros_like(ink)
+        band[rows, :] = ink[rows, :]
+        dashes = cv2.morphologyEx(band, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (9, 1)))
+        shift = 4
+        above = np.zeros_like(ink)
+        below = np.zeros_like(ink)
+        above[shift:, :] = ink[:-shift, :]
+        below[:-shift, :] = ink[shift:, :]
+        lonely = cv2.bitwise_and(dashes, cv2.bitwise_not(cv2.bitwise_or(above, below)))
+        lonely = cv2.dilate(lonely, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+        lonely = cv2.bitwise_and(lonely, band)
+        horiz_mask = cv2.bitwise_or(horiz_mask, lonely)
 
-    vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(40, h // 15)))
-    vert = cv2.morphologyEx(ink, cv2.MORPH_OPEN, vk)
-    vcov = (vert > 0).sum(axis=0) / float(h)
-    cols = vcov > 0.3
-    cols = np.convolve(cols.astype(np.uint8), np.ones(3, np.uint8), "same") > 0
+    # Margin lines and grid columns run most of the page height (possibly broken
+    # into dashes by blur); a tall handwritten stroke doesn't.
+    vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(20, ph // 30)))
+    vbridged = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15)))
+    vert = cv2.bitwise_and(cv2.morphologyEx(vbridged, cv2.MORPH_OPEN, vk), ink)
+    vsmeared = cv2.dilate(vert, cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1)))
+    vcov = (vsmeared > 0).sum(axis=0) / float(ph)
+    cols = vcov > (0.6 if vertical else 2.0)
+    cols = np.convolve(cols.astype(np.uint8), np.ones(5, np.uint8), "same") > 0
     vert_mask = np.zeros_like(ink)
-    vert_mask[:, cols] = vert[:, cols]
-    vert_mask = cv2.dilate(vert_mask, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 1)))
+    if cols.any():
+        vband = np.zeros_like(ink)
+        vband[:, cols] = ink[:, cols]
+        vdash = cv2.morphologyEx(vband, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 5)))
+        shift = 4
+        left = np.zeros_like(ink)
+        right = np.zeros_like(ink)
+        left[:, shift:] = ink[:, :-shift]
+        right[:, :-shift] = ink[:, shift:]
+        lonely_v = cv2.bitwise_and(vdash, cv2.bitwise_not(cv2.bitwise_or(left, right)))
+        vert_mask = cv2.bitwise_or(cv2.bitwise_and(vert, vband), lonely_v)
+        vert_mask = cv2.dilate(vert_mask, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+        vert_mask = cv2.bitwise_and(vert_mask, vband)
 
     removed = cv2.bitwise_or(horiz_mask, vert_mask)
     clean = cv2.bitwise_and(ink, cv2.bitwise_not(removed))
@@ -245,6 +307,37 @@ def _runs(mask: np.ndarray):
     return spans
 
 
+def _split_at_valleys(spans, smooth, ch):
+    """Split a run where two lines touch (exponents, descenders) at a deep valley."""
+    out = []
+    min_part = max(4, int(ch))
+    for a, b in spans:
+        stack = [(a, b)]
+        while stack:
+            s0, s1 = stack.pop()
+            if s1 - s0 + 1 < 2 * min_part + 1:
+                out.append([s0, s1])
+                continue
+            seg = smooth[s0:s1 + 1]
+            peak = seg.max()
+            best, best_i = None, None
+            for i in range(min_part, len(seg) - min_part):
+                left = seg[:i].max()
+                right = seg[i + 1:].max()
+                # Both sides must look like real lines, not a row of exponents.
+                if min(left, right) < 0.4 * peak:
+                    continue
+                depth = seg[i] / max(min(left, right), 1e-6)
+                if depth < 0.18 and (best is None or depth < best):
+                    best, best_i = depth, i
+            if best_i is None:
+                out.append([s0, s1])
+            else:
+                stack.append((s0 + best_i + 1, s1))
+                stack.append((s0, s0 + best_i))
+    return sorted(out)
+
+
 def _merge_spans(spans, prof, ch):
     """Merge fraction parts, exponents and tiny fragments into their lines."""
     if not spans:
@@ -259,8 +352,11 @@ def _merge_spans(spans, prof, ch):
             a1, b1 = spans[i + 1]
             gap = a1 - b0 - 1
             h0, h1 = b0 - a0 + 1, b1 - a1 + 1
-            small = min(h0, h1) < 0.45 * max(med, ch)
-            if gap < 0.4 * med or (small and gap < 0.9 * max(med, ch)):
+            # Fraction parts sit very close together; a thin span (a fraction bar,
+            # a row of exponents, a dot) belongs to its neighbour. Ordinary lines,
+            # even tightly spaced ones, are separated by a clear gap.
+            small = min(h0, h1) < 0.3 * med
+            if gap < 0.25 * med or (small and gap < 0.6 * med):
                 spans[i] = [a0, b1]
                 del spans[i + 1]
                 changed = True
@@ -319,6 +415,7 @@ def split_lines(ink: np.ndarray, stats) -> list:
     total = prof.sum()
     spans = [s for s in spans if prof[s[0]:s[1] + 1].sum() > 0.002 * total]
     spans = _merge_spans(spans, prof, ch)
+    spans = _split_at_valleys(spans, smooth, ch)
 
     # Very tall spans mean slanted or touching lines: split them by components.
     est_line = 1.7 * ch
@@ -340,6 +437,13 @@ def split_lines(ink: np.ndarray, stats) -> list:
         mass = (rows > 0).sum()
         if mass < max(30, 0.15 * ch * ch):
             continue  # a stray mark
+        # A line of writing always has some character-height marks; leftover
+        # fragments of ruled lines and smudges don't.
+        n_cc, _lab, cc_stats, _c = cv2.connectedComponentsWithStats(rows, connectivity=8)
+        if n_cc <= 1 or max(cc_stats[i][cv2.CC_STAT_HEIGHT] for i in range(1, n_cc)) < 0.45 * ch:
+            continue
+        if cols[-1] - cols[0] < 0.5 * ch:
+            continue  # a sliver (e.g. a piece of a margin line), too narrow to be math
         left, right = int(cols[0]), int(cols[-1])
         boxes.append((max(0, left - pad), max(0, a - pad), min(w - 1, right + pad), min(h - 1, b + pad)))
     return boxes[:MAX_LINES]
@@ -413,7 +517,9 @@ def process_image(data: bytes, mode: str = "problem") -> VisionResult:
     Minv = np.linalg.inv(M)
 
     gray, ink = enhance(warped)
-    ink, removed = remove_ruled_lines(ink)
+    pw, ph = (warped.shape[1], warped.shape[0]) if quad is not None else page_extent(gray)
+    # A drawing pad (line mode, no paper) has no margin line; tall strokes there are writing.
+    ink, removed = remove_ruled_lines(ink, pw, ph, vertical=not (mode == "line" and quad is None))
     ink, stats = remove_noise(ink)
 
     # The crop the model sees: enhanced grayscale with ruled lines painted out.

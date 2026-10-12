@@ -19,18 +19,20 @@ export const MESSAGES: Record<Issue, string> = {
 
 // Starting points; tune on a real phone with the on-screen metrics (Settings → camera metrics).
 export const THRESHOLDS = {
-  minBrightness: 60,      // average brightness 0-255
+  minBrightness: 60,      // average brightness 0-255 when no paper is found
+  minPaperBrightness: 105, // brightness of the paper itself
   maxGlare: 0.05,         // share of paper pixels above 250
   minPaperArea: 0.2,      // paper region vs frame
   maxOffCenter: 0.22,     // paper-centre distance from frame centre (fraction of frame)
   maxMotion: 9,           // mean absolute difference between frames
-  minSharpness: 18,       // variance of the Laplacian inside the paper
+  minSharpness: 70,       // RMS Laplacian on stroke edges
   minInk: 0.0015,         // share of dark pixels inside the paper
   edgeBand: 0.03,         // work this close to the frame edge counts as cut off
 }
 
 export interface FrameMetrics {
   brightness: number
+  paperBrightness: number
   glare: number
   paperArea: number
   paperBox: { x0: number; y0: number; x1: number; y1: number } | null
@@ -126,7 +128,7 @@ export function analyzeFrame(gray: Uint8Array, w: number, h: number, prev: Uint8
   const region = largestBrightRegion(gray, w, h, t)
   const paperArea = region.count / n
   if (region.count < n * 0.02) {
-    return { brightness, glare: 0, paperArea, paperBox: null, offCenter: 1, motion, sharpness: 0, ink: 0, inkAtEdge: 0 }
+    return { brightness, paperBrightness: 0, glare: 0, paperArea, paperBox: null, offCenter: 1, motion, sharpness: 0, ink: 0, inkAtEdge: 0 }
   }
   const { x0, y0, x1, y1, labels, label } = region
 
@@ -172,8 +174,8 @@ export function analyzeFrame(gray: Uint8Array, w: number, h: number, prev: Uint8
   let ink = 0
   let inkEdge = 0
   let boxCount = 0
-  // Sharpness: variance of the 4-neighbour Laplacian inside the paper box.
-  let lapSum = 0
+  // Sharpness: RMS of the 4-neighbour Laplacian on stroke edges. Measuring only
+  // at edges keeps the score independent of how much writing is on the page.
   let lapSq = 0
   let lapN = 0
   for (let y = Math.max(1, y0); y <= Math.min(h - 2, y1); y++) {
@@ -186,18 +188,22 @@ export function analyzeFrame(gray: Uint8Array, w: number, h: number, prev: Uint8
         ink++
         if (x < bandX || x >= w - bandX || y < bandY || y >= h - bandY) inkEdge++
       }
-      const lap = 4 * v - gray[p - 1] - gray[p + 1] - gray[p - w] - gray[p + w]
-      lapSum += lap
-      lapSq += lap * lap
-      lapN++
+      const l = gray[p - 1], r = gray[p + 1], u = gray[p - w], d = gray[p + w]
+      const hi = Math.max(v, l, r, u, d)
+      const lo = Math.min(v, l, r, u, d)
+      if (hi - lo > 40) {
+        const lap = 4 * v - l - r - u - d
+        lapSq += lap * lap
+        lapN++
+      }
     }
   }
-  const lapMean = lapN ? lapSum / lapN : 0
-  const sharpness = lapN ? lapSq / lapN - lapMean * lapMean : 0
+  const sharpness = lapN ? Math.sqrt(lapSq / lapN) : 0
   const cx = (x0 + x1) / 2 / w - 0.5
   const cy = (y0 + y1) / 2 / h - 0.5
   return {
     brightness,
+    paperBrightness: paperMean,
     glare,
     paperArea,
     paperBox: { x0: x0 / w, y0: y0 / h, x1: x1 / w, y1: y1 / h },
@@ -211,14 +217,15 @@ export function analyzeFrame(gray: Uint8Array, w: number, h: number, prev: Uint8
 
 /** The most important problem with this frame, or null if it's good. */
 export function findIssue(m: FrameMetrics, th = THRESHOLDS): Issue | null {
-  if (m.brightness < th.minBrightness) return 'dark'
+  if (m.paperBox ? m.paperBrightness < th.minPaperBrightness : m.brightness < th.minBrightness) return 'dark'
   if (m.paperBox && m.glare > th.maxGlare) return 'glare'
   if (!m.paperBox || m.paperArea < th.minPaperArea) return 'small'
   if (m.inkAtEdge > 0.04) return 'cutoff'
   if (m.offCenter > th.maxOffCenter) return 'offcenter'
   if (m.motion > th.maxMotion) return 'moving'
-  if (m.sharpness < th.minSharpness) return 'blurry'
+  // Sharpness can only be judged where there's writing.
   if (m.ink < th.minInk) return 'nowriting'
+  if (m.sharpness < th.minSharpness) return 'blurry'
   return null
 }
 
