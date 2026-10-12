@@ -33,6 +33,7 @@ SYMBOL_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 SAMPLES = [
     {
         "id": "sign-error",
+        "error_line": 1,
         "title": "Solving a linear equation",
         "description": "A dropped sign when a term moves across the equals sign.",
         "font": "caveat",
@@ -45,6 +46,7 @@ SAMPLES = [
     },
     {
         "id": "distribution",
+        "error_line": 1,
         "title": "Distributing a negative",
         "description": "The -2 doesn't get multiplied through correctly.",
         "font": "kalam",
@@ -58,6 +60,7 @@ SAMPLES = [
     },
     {
         "id": "all-correct",
+        "error_line": None,
         "title": "A fully correct solution",
         "description": "Every step checks out.",
         "font": "caveat",
@@ -70,6 +73,7 @@ SAMPLES = [
     },
     {
         "id": "quadratic",
+        "error_line": None,
         "title": "Factoring a quadratic",
         "description": "A correct factoring solution.",
         "font": "kalam",
@@ -81,6 +85,7 @@ SAMPLES = [
     },
     {
         "id": "chain-rule",
+        "error_line": 1,
         "title": "A derivative (calculus)",
         "description": "The chain rule's inner derivative goes missing.",
         "font": "caveat",
@@ -91,6 +96,7 @@ SAMPLES = [
     },
     {
         "id": "integral",
+        "error_line": None,
         "title": "An integral (calculus)",
         "description": "Checked by differentiating the answer.",
         "font": "kalam",
@@ -101,6 +107,7 @@ SAMPLES = [
     },
     {
         "id": "inequality",
+        "error_line": 2,
         "title": "An inequality",
         "description": "Dividing by a negative without flipping the sign.",
         "font": "caveat",
@@ -112,6 +119,7 @@ SAMPLES = [
     },
     {
         "id": "homework-page",
+        "error_line": None,
         "title": "A whole homework page",
         "description": "Two problems on one page (whole-page mode).",
         "font": "kalam",
@@ -257,6 +265,7 @@ def main():
         index.append({
             "id": sample["id"], "title": sample["title"], "description": sample["description"],
             "file": fname, "page": bool(sample.get("page")), "lines": lines,
+            "error_line": sample.get("error_line"),
         })
         print("wrote", fname)
     with open(os.path.join(OUT, "samples.json"), "w") as f:

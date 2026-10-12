@@ -1,0 +1,18 @@
+# Render blueprint: the API on Render (free tier works), the frontend on Vercel.
+services:
+  - type: web
+    name: where-did-i-go-wrong-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: ENGINE_WORKERS
+        value: "2"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

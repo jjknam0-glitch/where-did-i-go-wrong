@@ -112,7 +112,7 @@ export default function Home() {
         <section>
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="text-lg font-semibold">Try a sample</h2>
-            <span className="text-xs text-muted">Real photos of handwritten work</span>
+            <span className="text-xs text-muted">Sample photos with rendered handwriting</span>
           </div>
           <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
             {samples.map((s) => (

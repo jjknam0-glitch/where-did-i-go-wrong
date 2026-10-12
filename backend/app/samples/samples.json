@@ -25,7 +25,8 @@
         ],
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": 1
   },
   {
     "id": "distribution",
@@ -59,7 +60,8 @@
         "latex": "x=-6",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": 1
   },
   {
     "id": "all-correct",
@@ -88,7 +90,8 @@
         "latex": "x=11",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": null
   },
   {
     "id": "quadratic",
@@ -112,7 +115,8 @@
         "latex": "x=2 \\text{ or } x=3",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": null
   },
   {
     "id": "chain-rule",
@@ -131,7 +135,8 @@
         "latex": "f'(x)=5(x^2+1)^4",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": 1
   },
   {
     "id": "integral",
@@ -150,7 +155,8 @@
         "latex": "=\\sin(x^2)+C",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": null
   },
   {
     "id": "inequality",
@@ -174,7 +180,8 @@
         "latex": "x>-2",
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": 2
   },
   {
     "id": "homework-page",
@@ -219,6 +226,7 @@
         "problem": 1,
         "type": "equation"
       }
-    ]
+    ],
+    "error_line": null
   }
 ]

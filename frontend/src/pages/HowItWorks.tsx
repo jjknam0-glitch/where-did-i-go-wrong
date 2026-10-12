@@ -93,9 +93,9 @@ export default function HowItWorks() {
         <Card className="grid grid-cols-3 divide-x divide-line text-center">
           <div className="p-4"><p className="text-2xl font-semibold">0</p><p className="text-xs text-muted">false alarms on 300 random correct solutions</p></div>
           <div className="p-4"><p className="text-2xl font-semibold">99%</p><p className="text-xs text-muted">planted errors circled on the right line</p></div>
-          <div className="p-4"><p className="text-2xl font-semibold">24/24</p><p className="text-xs text-muted">lines found in the sample photo set</p></div>
+          <div className="p-4"><p className="text-2xl font-semibold">80/80</p><p className="text-xs text-muted">randomized sample photos split into the right lines</p></div>
         </Card>
-        <p className="mt-2 text-xs text-muted">Engine numbers come from the randomized test in the repository (the misses were steps that stayed mathematically valid). Real-handwriting transcription accuracy depends on the vision model and is measured per deployment.</p>
+        <p className="mt-2 text-xs text-muted">Engine numbers come from the randomized test in the repository (the misses were steps that stayed mathematically valid). Photo numbers use generated photos with a handwriting font, varied in size, tilt, light and blur. Accuracy on real handwriting depends on the vision model and is measured per deployment with the evaluation script.</p>
       </section>
 
       <section>
