@@ -86,6 +86,12 @@ def same_value(a, b) -> bool:
     return abs(fa - fb) <= REL_TOL * scale
 
 
+def _clear_gap(a, b) -> bool:
+    fa, fb = Float(a, PREC), Float(b, PREC)
+    scale = max(Float(1, PREC), abs(fa), abs(fb))
+    return abs(fa - fb) > Float("1e-8", PREC) * scale
+
+
 def numeric_compare(a, b, symbols, rng: random.Random, *, need: int = 8, max_tries: int = 48,
                     positive: bool = False, min_valid: int = 4, seconds: float = 1.5) -> NumericResult:
     """Compare two expressions at random points.
@@ -107,7 +113,9 @@ def numeric_compare(a, b, symbols, rng: random.Random, *, need: int = 8, max_tri
                     continue
                 valid += 1
                 if not same_value(va, vb):
-                    return NumericResult("different", point, va.is_Rational and vb.is_Rational, valid)
+                    # Exact fractions prove it; so does a large gap at 30-digit precision.
+                    decisive = (va.is_Rational and vb.is_Rational) or _clear_gap(va, vb)
+                    return NumericResult("different", point, decisive, valid)
                 if valid >= need:
                     return NumericResult("same", None, False, valid)
     except EngineTimeout:
