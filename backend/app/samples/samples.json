@@ -1,0 +1,224 @@
+[
+  {
+    "id": "sign-error",
+    "title": "Solving a linear equation",
+    "description": "A dropped sign when a term moves across the equals sign.",
+    "file": "sign-error.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "2x + 3 = 7",
+        "latex": "2x+3=7",
+        "type": "equation"
+      },
+      {
+        "math": "2x = 10",
+        "latex": "2x=10",
+        "type": "equation"
+      },
+      {
+        "math": "x = 5",
+        "latex": "x=5",
+        "alternatives": [
+          "x = 5",
+          "x = s"
+        ],
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "distribution",
+    "title": "Distributing a negative",
+    "description": "The -2 doesn't get multiplied through correctly.",
+    "file": "distribution.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "-2(x - 3) + 4 = 10",
+        "latex": "-2(x-3)+4=10",
+        "type": "equation"
+      },
+      {
+        "math": "-2x - 6 + 4 = 10",
+        "latex": "-2x-6+4=10",
+        "type": "equation"
+      },
+      {
+        "math": "-2x - 2 = 10",
+        "latex": "-2x-2=10",
+        "type": "equation"
+      },
+      {
+        "math": "-2x = 12",
+        "latex": "-2x=12",
+        "type": "equation"
+      },
+      {
+        "math": "x = -6",
+        "latex": "x=-6",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "all-correct",
+    "title": "A fully correct solution",
+    "description": "Every step checks out.",
+    "file": "all-correct.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "3(x - 2) = 2x + 5",
+        "latex": "3(x-2)=2x+5",
+        "type": "equation"
+      },
+      {
+        "math": "3x - 6 = 2x + 5",
+        "latex": "3x-6=2x+5",
+        "type": "equation"
+      },
+      {
+        "math": "x - 6 = 5",
+        "latex": "x-6=5",
+        "type": "equation"
+      },
+      {
+        "math": "x = 11",
+        "latex": "x=11",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "quadratic",
+    "title": "Factoring a quadratic",
+    "description": "A correct factoring solution.",
+    "file": "quadratic.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "x^2 - 5x + 6 = 0",
+        "latex": "x^2-5x+6=0",
+        "type": "equation"
+      },
+      {
+        "math": "(x - 2)(x - 3) = 0",
+        "latex": "(x-2)(x-3)=0",
+        "type": "equation"
+      },
+      {
+        "math": "x = 2 or x = 3",
+        "latex": "x=2 \\text{ or } x=3",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "chain-rule",
+    "title": "A derivative (calculus)",
+    "description": "The chain rule's inner derivative goes missing.",
+    "file": "chain-rule.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "f(x) = (x^2 + 1)^5",
+        "latex": "f(x)=(x^2+1)^5",
+        "type": "equation"
+      },
+      {
+        "math": "f'(x) = 5(x^2 + 1)^4",
+        "latex": "f'(x)=5(x^2+1)^4",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "integral",
+    "title": "An integral (calculus)",
+    "description": "Checked by differentiating the answer.",
+    "file": "integral.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "∫ 2x cos(x^2) dx",
+        "latex": "\\int 2x\\cos(x^2)\\,dx",
+        "type": "equation"
+      },
+      {
+        "math": "= sin(x^2) + C",
+        "latex": "=\\sin(x^2)+C",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "inequality",
+    "title": "An inequality",
+    "description": "Dividing by a negative without flipping the sign.",
+    "file": "inequality.jpg",
+    "page": false,
+    "lines": [
+      {
+        "math": "-3x + 4 > 10",
+        "latex": "-3x+4>10",
+        "type": "equation"
+      },
+      {
+        "math": "-3x > 6",
+        "latex": "-3x>6",
+        "type": "equation"
+      },
+      {
+        "math": "x > -2",
+        "latex": "x>-2",
+        "type": "equation"
+      }
+    ]
+  },
+  {
+    "id": "homework-page",
+    "title": "A whole homework page",
+    "description": "Two problems on one page (whole-page mode).",
+    "file": "homework-page.jpg",
+    "page": true,
+    "lines": [
+      {
+        "math": "5x - 4 = 11",
+        "latex": "5x-4=11",
+        "problem": 0,
+        "type": "equation"
+      },
+      {
+        "math": "5x = 15",
+        "latex": "5x=15",
+        "problem": 0,
+        "type": "equation"
+      },
+      {
+        "math": "x = 3",
+        "latex": "x=3",
+        "problem": 0,
+        "type": "equation"
+      },
+      {
+        "math": "4(x + 1) = 20",
+        "latex": "4(x+1)=20",
+        "problem": 1,
+        "type": "equation"
+      },
+      {
+        "math": "4x + 1 = 20",
+        "latex": "4x+1=20",
+        "problem": 1,
+        "type": "equation"
+      },
+      {
+        "math": "4x = 19",
+        "latex": "4x=19",
+        "problem": 1,
+        "type": "equation"
+      }
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+opencv-python-headless>=4.10
+numpy>=1.26
+pillow>=10.4
+sympy>=1.13
+python-dotenv>=1.0
+anthropic>=1.0
+# Optional transcription providers (install the one you use):
+google-genai>=1.0
+openai>=1.50
