@@ -1,4 +1,4 @@
-import { BookOpen, Camera, CheckCircle2, ChevronRight, Dumbbell, Eye, ImageDown, Lightbulb, Lock, Pencil, RotateCcw, Share2, Sparkles, Wrench } from 'lucide-react'
+import { BookOpen, Camera, CheckCircle2, ChevronRight, Dumbbell, Eye, ImageDown, Lightbulb, Lock, Pencil, RotateCcw, Share2, Wrench } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FixSheet } from '../components/FixSheet'
@@ -80,7 +80,7 @@ export default function Result() {
 
   if (!session || !result) {
     return (
-      <EmptyState icon={<Sparkles className="size-6" />} title="No result yet" action={session?.drafts.length ? <LinkButton to="/confirm">Back to your lines</LinkButton> : <LinkButton to="/">Start a check</LinkButton>}>
+      <EmptyState icon={<Lightbulb className="size-6" />} title="No result yet" action={session?.drafts.length ? <LinkButton to="/confirm">Back to your lines</LinkButton> : <LinkButton to="/">Start a check</LinkButton>}>
         Check some work and the result will show up here.
       </EmptyState>
     )

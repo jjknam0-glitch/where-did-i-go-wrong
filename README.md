@@ -8,6 +8,8 @@ A phone-first web app that photographs a student's handwritten math and circles 
 
 Built for Banana Hacks 2026 (theme: Image AI).
 
+**New to this?** [GETTING_STARTED.md](GETTING_STARTED.md) walks through installing, running, putting it online and turning it into a phone app, step by step. The product website is in [`website/`](website/).
+
 ```mermaid
 flowchart LR
   A[Guided camera<br/>live checks, auto-capture] --> B[Clean up<br/>EXIF, perspective warp,<br/>CLAHE, remove ruled lines]
@@ -40,13 +42,15 @@ All features from the product spec are implemented:
 | Concept mini-lessons | "Why does this rule work?" with a worked example verified by the engine | ✓ | ✓ |
 | Streaks & progress | Day streaks, "N problems with no sign errors in a row", self-fixed mistakes, shareable win cards | ✓ | ✓ |
 
-Also: trust tiers on every verdict, a whole-problem sanity check, a final answer shown only if the student explicitly asks, optional accounts (13+, cross-device sync), opt-in transcription corrections, data export and deletion, dark mode, and an installable web-app manifest.
+Also: trust tiers on every verdict, a whole-problem sanity check, a final answer shown only if the student explicitly asks, optional accounts (13+, cross-device sync), opt-in transcription corrections, data export and deletion, dark mode, and an installable app (PWA with offline support; Capacitor config for the app stores).
 
 **Payments aren't connected.** The Plans page switches plans instantly with a clear "early access, no card needed" note. Pricing is an open question in the spec.
 
 ## Quick start
 
 Requires Python 3.11+ (tested on 3.13) and Node 20+ (tested on 22).
+
+**One command:** `./start.sh` (Mac/Linux) or double-click `start.bat` (Windows). It installs everything on the first run and starts both servers. Or step by step:
 
 ```bash
 # Backend
@@ -90,6 +94,15 @@ docker build -t wdigw . && docker run -p 8000:8000 -e ANTHROPIC_API_KEY=... wdig
 ```
 
 **Option B: Vercel + Render** (the spec's free hosting). `render.yaml` deploys `backend/`; set `ANTHROPIC_API_KEY` and `CORS_ORIGINS=https://your-app.vercel.app`. Deploy `frontend/` to Vercel with the environment variable `VITE_API_URL=https://your-api.onrender.com`; `vercel.json` handles client-side routes. On Render's free tier the disk is temporary, so accounts and share links reset when the service restarts. Attach a disk (and point `DATA_DIR` at it) to keep them.
+
+## Install as an app
+
+- **From the browser (PWA):** on any HTTPS deployment, iPhone users tap Share → Add to Home Screen; Chrome and Edge offer Install. The service worker (`frontend/public/sw.js`) caches the app shell so it opens offline, and never caches `/api`. In-app steps are under More → Install the app.
+- **App Store and Google Play:** `frontend/capacitor.config.json` is ready. Build with `VITE_API_URL` (your API) and `VITE_PUBLIC_URL` (your website, for share links), run `npx cap add ios|android` and `npx cap sync`, then add the camera permission and `capacitor://localhost,https://localhost` to `CORS_ORIGINS`. Full steps in [GETTING_STARTED.md](GETTING_STARTED.md#8-make-it-an-app).
+
+## Website
+
+`website/index.html` is a static product page using real app screenshots (`website/img/`). Set `APP_URL` near the bottom of the file to your deployed app, then host the folder anywhere static (Netlify Drop, Vercel, GitHub Pages).
 
 ## How it works
 
@@ -177,6 +190,10 @@ frontend/
   src/pages/       every screen
   src/lib/         API client, local state, camera analyzer, profile stats
   e2e/             Playwright tests
+  public/          manifest, service worker, app icons
+website/           static product page + screenshots
+start.sh / start.bat   one-command install and run
+GETTING_STARTED.md     beginner setup, deploy and app-store guide
 ```
 
 ## Roadmap

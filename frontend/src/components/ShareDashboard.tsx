@@ -1,7 +1,7 @@
-import { CheckCircle2, Wrench, XCircle } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ShieldCheck, Target, Wrench, XCircle } from 'lucide-react'
 import type { ShareSnapshot } from '../lib/profile'
 import { errorLabel, topicLabel } from '../lib/profile'
-import { Bars } from '../pages/Progress'
+import { Bars, Row } from './Stats'
 import { Card } from './ui'
 
 export function isSnapshot(v: unknown): v is ShareSnapshot {
@@ -41,11 +41,11 @@ export function ShareDashboard({ snap, compact = false }: { snap: ShareSnapshot;
           )}
           <Card className="p-5">
             <h3 className="mb-3 font-semibold">Progress</h3>
-            <ul className="space-y-2 text-[15px]">
-              {snap.streaks.cleanRun && <li>🧹 {snap.streaks.cleanRun.count} problems in a row with no {errorLabel(snap.streaks.cleanRun.type, true)}</li>}
-              <li>🔧 {snap.streaks.fixes} mistakes in a row fixed without help from an answer key</li>
-              <li>🎯 {snap.practice.correct} of {snap.practice.sessions} practice problems right this month</li>
-              <li>📚 {snap.allTime.problems} problems checked in total</li>
+            <ul className="space-y-2.5 text-[15px]">
+              {snap.streaks.cleanRun && <Row icon={<ShieldCheck className="size-4" />}>{snap.streaks.cleanRun.count} problems in a row with no {errorLabel(snap.streaks.cleanRun.type, true)}</Row>}
+              <Row icon={<Wrench className="size-4" />}>{snap.streaks.fixes} mistakes in a row fixed without an answer key</Row>
+              <Row icon={<Target className="size-4" />}>{snap.practice.correct} of {snap.practice.sessions} practice problems right this month</Row>
+              <Row icon={<CalendarDays className="size-4" />}>{snap.allTime.problems} problems checked in total</Row>
             </ul>
           </Card>
           {snap.recent.length > 0 && (

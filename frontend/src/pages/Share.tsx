@@ -7,8 +7,12 @@ import { api } from '../lib/api'
 import { hasFeature, shareSnapshot } from '../lib/profile'
 import { useStore } from '../lib/store'
 
+// In a packaged phone app the page origin isn't a web address, so share links
+// use the public website address when one is configured.
+const PUBLIC_URL = ((import.meta.env.VITE_PUBLIC_URL as string | undefined) ?? '').replace(/\/$/, '')
+
 export function shareUrl(id: string): string {
-  return `${window.location.origin}/s/${id}`
+  return `${PUBLIC_URL || window.location.origin}/s/${id}`
 }
 
 export default function Share() {

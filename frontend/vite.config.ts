@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
+    // HTTPS tunnels for testing the live camera on a phone (see GETTING_STARTED.md).
+    allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.trycloudflare.com'],
     proxy: {
       '/api': { target: process.env.VITE_DEV_API ?? 'http://localhost:8000', changeOrigin: true },
     },

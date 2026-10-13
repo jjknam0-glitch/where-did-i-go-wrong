@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where Did I Go Wrong?</title>
+<meta name="description" content="Snap a photo of your algebra homework. Where Did I Go Wrong? checks every step and circles the first one that broke, without giving away the answer.">
+<meta property="og:title" content="Where Did I Go Wrong?">
+<meta property="og:description" content="Find the exact line where your math went wrong.">
+<meta property="og:image" content="img/result.webp">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<!-- site:head -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@500;700;800&display=swap">
+<style>
+:root {
+  --paper: #f7f5ef;
+  --sheet: #fffdf8;
+  --grid: rgba(40, 66, 120, 0.075);
+  --grid-strong: rgba(40, 66, 120, 0.12);
+  --ink: #1b2747;
+  --ink-2: #4b5672;
+  --ink-3: #7c8399;
+  --line: #ddd7c9;
+  --pen: #cf3a2e;
+  --pen-soft: rgba(207, 58, 46, 0.09);
+  --margin: rgba(207, 58, 46, 0.34);
+  --hi: #f8e46c;
+  --hi-ink: #1b2747;
+  --ok: #2f7a4f;
+  --btn: #1b2747;
+  --btn-ink: #fffdf8;
+  --shadow: 0 1px 0 rgba(27, 39, 71, 0.04), 0 18px 40px -22px rgba(27, 39, 71, 0.35);
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --hand: "Caveat", "Bradley Hand", "Segoe Print", cursive;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12161f; --sheet: #191e29; --grid: rgba(160, 180, 230, 0.05); --grid-strong: rgba(160, 180, 230, 0.09);
+    --ink: #ebe8df; --ink-2: #b4b8c6; --ink-3: #868b9c; --line: #2c3343;
+    --pen: #ff6d5f; --pen-soft: rgba(255, 109, 95, 0.12); --margin: rgba(255, 109, 95, 0.3);
+    --hi: rgba(240, 214, 80, 0.85); --hi-ink: #12161f; --ok: #6cc28d;
+    --btn: #ebe8df; --btn-ink: #12161f; --shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12161f; --sheet: #191e29; --grid: rgba(160, 180, 230, 0.05); --grid-strong: rgba(160, 180, 230, 0.09);
+  --ink: #ebe8df; --ink-2: #b4b8c6; --ink-3: #868b9c; --line: #2c3343;
+  --pen: #ff6d5f; --pen-soft: rgba(255, 109, 95, 0.12); --margin: rgba(255, 109, 95, 0.3);
+  --hi: rgba(240, 214, 80, 0.85); --hi-ink: #12161f; --ok: #6cc28d;
+  --btn: #ebe8df; --btn-ink: #12161f; --shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font: 400 1.0625rem/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+/* The red margin line of a sheet of school paper. */
+body::before {
+  content: ""; position: fixed; top: 0; bottom: 0; left: 56px; width: 2px;
+  background: var(--margin); pointer-events: none; z-index: 0; display: none;
+}
+@media (min-width: 960px) { body::before { display: block; } }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+
+.wrap { position: relative; z-index: 1; width: min(1080px, 100% - 40px); margin-inline: auto; }
+@media (min-width: 960px) { .wrap { width: min(1080px, 100% - 200px); } }
+
+.label {
+  font: 500 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+}
+.label b { color: var(--pen); font-weight: 500; }
+.hand { font-family: var(--hand); font-weight: 600; color: var(--pen); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; height: 48px; padding-inline: 1.25rem;
+  border-radius: 12px; font: 700 1rem/1 var(--body); text-decoration: none; white-space: nowrap;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--btn); color: var(--btn-ink); }
+.btn-primary:hover { background: color-mix(in srgb, var(--btn) 88%, var(--pen)); }
+.btn-plain { color: var(--ink); border: 1.5px solid var(--line); background: var(--sheet); }
+.btn-plain:hover { border-color: var(--ink-3); }
+.btn svg { width: 18px; height: 18px; }
+
+/* Nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: saturate(1.2) blur(6px); -webkit-backdrop-filter: saturate(1.2) blur(6px);
+}
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 64px; }
+.brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; white-space: nowrap; font: 700 1rem/1 var(--display); letter-spacing: -0.01em; }
+.brand svg { width: 32px; height: 32px; flex-shrink: 0; }
+.nav-links { display: none; gap: 1.75rem; font-size: 0.95rem; color: var(--ink-2); }
+.nav-links a { text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+.nav .btn { height: 40px; font-size: 0.9rem; padding-inline: 1rem; border-radius: 10px; }
+@media (min-width: 860px) { .nav-links { display: flex; } }
+@media (max-width: 380px) { .brand { font-size: 0.9rem; } .brand svg { width: 28px; height: 28px; } }
+
+/* Hero */
+.hero { padding-block: clamp(3rem, 8vw, 6rem) clamp(3rem, 7vw, 5rem); }
+.hero .wrap { display: grid; gap: 3rem; align-items: center; }
+@media (min-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); } }
+.hero h1 {
+  font-size: clamp(2.5rem, 6.4vw, 4.6rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.035em; margin-top: 1.25rem;
+}
+.circled { position: relative; display: inline-block; white-space: nowrap; }
+.circled svg {
+  position: absolute; left: -6%; top: -14%; width: 112%; height: 132%; overflow: visible; pointer-events: none;
+}
+.circled path {
+  fill: none; stroke: var(--pen); stroke-width: 3.5; stroke-linecap: round; vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 0.9s 0.35s cubic-bezier(.6,.1,.3,1) forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .circled path { animation: none; stroke-dashoffset: 0; } }
+.lede { font-size: clamp(1.1rem, 1.6vw, 1.25rem); color: var(--ink-2); max-width: 34rem; margin-top: 1.5rem; }
+mark { background: linear-gradient(transparent 12%, var(--hi) 12%, var(--hi) 88%, transparent 88%); color: var(--hi-ink); padding-inline: 0.15em; border-radius: 2px; }
+.cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+.hero-note { margin-top: 1.25rem; font-size: 0.9rem; color: var(--ink-3); }
+
+.phone {
+  width: 100%; max-width: 300px; border-radius: 30px; border: 1px solid var(--line);
+  background: var(--sheet); box-shadow: var(--shadow); overflow: hidden; aspect-ratio: 585 / 1266;
+}
+.phone img { width: 100%; height: 100%; object-fit: cover; }
+.hero-figure { position: relative; justify-self: center; width: min(300px, 100%); }
+.hero-figure .phone { transform: rotate(1.2deg); }
+.note {
+  position: absolute; font-family: var(--hand); font-weight: 600; color: var(--pen); font-size: 1.55rem; line-height: 1.05;
+}
+.note svg { position: absolute; overflow: visible; }
+.note path { fill: none; stroke: var(--pen); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.note-a { right: calc(100% + 28px); top: 46%; width: 9.5rem; text-align: right; }
+.note-a svg { left: calc(100% + 4px); top: 0.5rem; width: 64px; height: 40px; }
+.note-b { left: calc(100% + 24px); top: 23%; width: 8rem; }
+.note-b svg { right: calc(100% + 4px); top: 0.55rem; width: 48px; height: 30px; }
+.note { display: none; }
+@media (min-width: 1100px) { .note { display: block; } }
+.hero-caption { margin-top: 1.25rem; text-align: center; font-family: var(--hand); font-size: 1.35rem; color: var(--pen); }
+@media (min-width: 1100px) { .hero-caption { display: none; } }
+
+/* Sections */
+section { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+.rule { border-top: 1px solid var(--line); }
+.sec-head { display: grid; gap: 1rem; max-width: 40rem; }
+.sec-head h2 { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.05; font-weight: 800; }
+.sec-head p { color: var(--ink-2); font-size: 1.125rem; }
+
+/* Steps */
+.steps { margin-top: 3rem; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 1.5rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 1rem; margin-inline: -20px; padding-inline: 20px; scrollbar-width: thin; }
+@media (min-width: 900px) { .steps { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; margin-inline: 0; padding-inline: 0; gap: 2.5rem; } }
+.step { scroll-snap-align: start; display: grid; gap: 1rem; align-content: start; }
+.step .phone { max-width: 260px; }
+.step h3 { font-size: 1.35rem; font-weight: 700; margin-top: 0.5rem; }
+.step p { color: var(--ink-2); max-width: 22rem; }
+
+/* Two column feature */
+.split { display: grid; gap: 3rem; align-items: center; margin-top: 0; }
+@media (min-width: 900px) { .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4rem; } .split.flip > :first-child { order: 2; } }
+.pair { display: flex; gap: 1rem; justify-content: center; align-items: flex-start; }
+.pair .phone { max-width: 250px; }
+.pair .phone:nth-child(2) { margin-top: 3.5rem; }
+
+.ladder { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.ladder li { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+.ladder .label { padding-top: 0.3rem; }
+.ladder strong { display: block; font-family: var(--display); font-size: 1.05rem; }
+.ladder span { color: var(--ink-2); }
+
+/* Check sheet */
+.engine { display: grid; gap: 3rem; margin-top: 3rem; }
+@media (min-width: 900px) { .engine { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; } }
+.sheet {
+  background: var(--sheet); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow);
+  background-image: repeating-linear-gradient(transparent 0 47px, var(--grid-strong) 47px 48px);
+  background-position: 0 63px; position: relative; overflow: hidden;
+}
+.sheet::before { content: ""; position: absolute; top: 0; bottom: 0; left: 3.25rem; width: 1.5px; background: var(--margin); }
+.sheet-top { display: flex; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.25rem 0 4.25rem; height: 64px; align-items: center; }
+.sheet-rows { list-style: none; margin: 0; padding: 0; }
+.sheet-rows li { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); align-items: center; min-height: 48px; }
+.sheet-rows .n { font: 500 0.8rem/1 var(--mono); color: var(--ink-3); text-align: center; }
+.sheet-rows .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; padding: 0.5rem 1.25rem 0.5rem 1rem; }
+.math { font: 600 1.85rem/1 var(--hand); color: var(--ink); white-space: nowrap; }
+.verdict { font: 400 0.82rem/1.3 var(--mono); color: var(--ink-3); display: inline-flex; align-items: center; gap: 0.4rem; }
+.verdict.ok { color: var(--ok); }
+.verdict.bad { color: var(--pen); }
+.verdict svg { width: 15px; height: 15px; flex-shrink: 0; }
+.bad-line .math { position: relative; }
+.bad-line .math svg { position: absolute; left: -14%; top: -30%; width: 128%; height: 160%; overflow: visible; }
+.bad-line .math path { fill: none; stroke: var(--pen); stroke-width: 2.5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.margin-note { padding: 0.25rem 1.25rem 1.5rem 4.25rem; font: 600 1.4rem/1.15 var(--hand); color: var(--pen); }
+
+.facts { display: grid; gap: 1.75rem; }
+.fact { display: grid; gap: 0.35rem; padding-left: 1rem; border-left: 2px solid var(--line); }
+.fact h3 { font-size: 1.15rem; font-weight: 700; }
+.fact p { color: var(--ink-2); }
+.numbers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2.5rem; }
+@media (min-width: 700px) { .numbers { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.num { border-top: 2px solid var(--ink); padding-top: 0.85rem; }
+.num b { display: block; font: 800 clamp(1.7rem, 3.2vw, 2.3rem)/1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.num span { display: block; margin-top: 0.5rem; font-size: 0.92rem; color: var(--ink-2); line-height: 1.4; }
+.footnote { margin-top: 1.25rem; font-size: 0.85rem; color: var(--ink-3); max-width: 46rem; }
+
+.ticks { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 1rem; }
+.ticks li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: 0.75rem; }
+.ticks svg { width: 20px; height: 20px; margin-top: 0.2rem; color: var(--ink); }
+.ticks strong { font-weight: 700; }
+.ticks span { color: var(--ink-2); }
+
+.shared { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+.shared div { padding: 1rem 1.1rem; border-radius: 10px; background: var(--sheet); border: 1px solid var(--line); }
+.shared h3 { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 0.6rem; }
+.shared ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.3rem; font-size: 0.97rem; }
+.shared .no li { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--pen); text-decoration-thickness: 1.5px; }
+
+/* Plans */
+.plans { display: grid; gap: 1rem; margin-top: 3rem; }
+@media (min-width: 820px) { .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.plan { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 1.5rem; display: grid; gap: 1rem; align-content: start; }
+.plan.main { border: 2px solid var(--ink); }
+.plan h3 { font-size: 1.5rem; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.plan h3 .label { color: var(--pen); }
+.plan > p { color: var(--ink-2); }
+.plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; font-size: 0.97rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.plan li { padding-left: 1.4rem; position: relative; }
+.plan li::before { content: ""; position: absolute; left: 0.1rem; top: 0.6em; width: 0.6rem; height: 0.3rem; border-left: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(-45deg); }
+.early { margin-top: 1.25rem; font-size: 0.95rem; color: var(--ink-2); }
+
+/* FAQ */
+.faq { margin-top: 2.5rem; border-top: 1px solid var(--line); max-width: 46rem; }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 1rem; padding-block: 1.15rem; font: 700 1.1rem/1.35 var(--display); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 400 1.5rem/1 var(--mono); color: var(--ink-3); transition: transform 0.2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { padding-bottom: 1.25rem; color: var(--ink-2); max-width: 40rem; }
+
+/* Get it */
+.get { display: grid; gap: 2.5rem; align-items: start; }
+@media (min-width: 900px) { .get { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4rem; } }
+.get h2 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1; font-weight: 800; letter-spacing: -0.035em; }
+.howto { display: grid; gap: 1rem; }
+.howto div { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; }
+.howto h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+.howto ol { margin: 0; padding-left: 1.25rem; color: var(--ink-2); display: grid; gap: 0.3rem; }
+.howto b { color: var(--ink); }
+
+footer { border-top: 1px solid var(--line); padding-block: 2.5rem calc(2.5rem + env(safe-area-inset-bottom, 0px)); font-size: 0.92rem; color: var(--ink-3); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between; align-items: center; }
+footer nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<!-- site:body -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="14" fill="#1b2747"/>
+    <g fill="#f7f6f2"><rect x="16" y="18.7" width="28" height="2.6" rx="1.3"/><rect x="16" y="30.7" width="22" height="2.6" rx="1.3"/><rect x="16" y="42.7" width="25" height="2.6" rx="1.3"/></g>
+    <ellipse cx="27" cy="32" rx="19" ry="7.5" fill="none" stroke="#e5484d" stroke-width="3" transform="rotate(-5 27 32)"/>
+  </symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="cross" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="dash" viewBox="0 0 24 24"><path d="M7 12h10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#logo"/></svg>Where Did I Go Wrong?</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#engine">Accuracy</a>
+      <a href="#parents">Parents</a>
+      <a href="#plans">Plans</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-primary" data-app href="#get">Open the app</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <p class="label"><b>Algebra</b> · Homework checker for ages 12–18</p>
+        <h1>Find the exact line where your math <span class="circled">went wrong<svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 268 22 C 220 4, 70 2, 22 26 C -4 40, 6 78, 60 90 C 130 104, 250 98, 286 70 C 304 54, 290 30, 236 16"/></svg></span>.</h1>
+        <p class="lede">Take a photo of your worked solution. The app reads every line, checks each step with a real math engine and circles the first one that broke, <mark>without giving away the answer</mark>.</p>
+        <div class="cta">
+          <a class="btn btn-primary" data-app href="#get">Check a problem<svg aria-hidden="true"><use href="#arrow"/></svg></a>
+          <a class="btn btn-plain" href="#how">See how it works</a>
+        </div>
+        <p class="hero-note">Free to use. No sign-up. Works in your phone's browser.</p>
+      </div>
+      <div class="hero-figure">
+        <div class="phone"><img src="img/result.webp" alt="The app's result screen. Line 2, 2x = 10, is circled in red and labelled as a sign error." width="585" height="1266"></div>
+        <p class="note note-a">the first step that broke<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M 2 8 C 22 4, 44 10, 58 30 M 47 27 L 58 31 L 58 19"/></svg></p>
+        <p class="note note-b">what kind of mistake<svg viewBox="0 0 48 30" aria-hidden="true"><path d="M 46 6 C 30 2, 12 8, 4 24 M 3 13 L 4 25 L 14 21"/></svg></p>
+        <p class="hero-caption">↑ it circles the first step that broke</p>
+      </div>
+    </div>
+  </div>
+
+  <section id="how" class="rule">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="label"><b>01</b> · How a check works</p>
+        <h2>Snap it, confirm it, see it.</h2>
+        <p>You do the math. The app checks the reasoning between each pair of lines.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="phone"><img src="img/camera.webp" alt="The camera screen showing a green frame around a page and the message Perfect, hold it there." loading="lazy" width="585" height="1266"></div>
+          <p class="label">Step 1</p>
+          <h3>Point at the page</h3>
+          <p>The camera coaches you on light, angle and blur, then takes the photo by itself when the page is sharp.</p>
+        </div>
+        <div class="step">
+          <div class="phone"><img src="img/confirm.webp" alt="The confirm screen listing each handwritten line next to how the app read it." loading="lazy" width="585" height="1266"></div>
+          <p class="label">Step 2</p>
+          <h3>Check what it read</h3>
+          <p>Each line is shown next to the app's reading. If one is smudged, it asks instead of guessing.</p>
+        </div>
+        <div class="step">
+          <div class="phone"><img src="img/result.webp" alt="The result screen with the broken line circled in red." loading="lazy" width="585" height="1266"></div>
+          <p class="label">Step 3</p>
+          <h3>See the broken step</h3>
+          <p>The first wrong line gets a red circle and a name: sign error, distribution, a missed inequality flip.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rule">
+    <div class="wrap split">
+      <div>
+        <div class="sec-head">
+          <p class="label"><b>02</b> · Hints, not answers</p>
+          <h2>Take only as much help as you need.</h2>
+          <p>Seeing where you slipped is usually enough. If it isn't, open the next hint. The final answer stays hidden unless you ask for it.</p>
+        </div>
+        <ol class="ladder">
+          <li><span class="label">Hint 1</span><div><strong>Where</strong><span>“Something's off between lines 1 and 2.”</span></div></li>
+          <li><span class="label">Hint 2</span><div><strong>What kind</strong><span>“Look at what happened to the +3 when it moved sides.”</span></div></li>
+          <li><span class="label">Hint 3</span><div><strong>The fix</strong><span>“Moving +3 makes it −3, so the line should be 2x = 4.”</span></div></li>
+          <li><span class="label">Then</span><div><strong>Fix it yourself</strong><span>Rewrite the broken line by typing, drawing or taking a photo. The app checks your fix and carries on.</span></div></li>
+        </ol>
+      </div>
+      <div class="pair">
+        <div class="phone"><img src="img/hints.webp" alt="All three hints opened on the result screen." loading="lazy" width="585" height="1266"></div>
+        <div class="phone"><img src="img/fix.webp" alt="The Fix it yourself panel with 2x = 4 typed in." loading="lazy" width="585" height="1266"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="engine" class="rule">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="label"><b>03</b> · Why you can trust the red circle</p>
+        <h2>The AI reads your handwriting. A math engine does the grading.</h2>
+        <p>Language models are good at reading messy writing and bad at arithmetic. So the app uses one for reading and never for judging.</p>
+      </div>
+      <div class="engine">
+        <div class="sheet" role="img" aria-label="A worked solution checked line by line. Line 1 is given, line 2 is a sign error, line 3 follows from line 2.">
+          <div class="sheet-top"><span class="label">Solve for x</span><span class="label">Checked line by line</span></div>
+          <ol class="sheet-rows">
+            <li><span class="n">1</span><div class="row"><span class="math">2x + 3 = 7</span><span class="verdict"><svg><use href="#dash"/></svg>the problem</span></div></li>
+            <li class="bad-line"><span class="n">2</span><div class="row"><span class="math">2x = 10<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M 88 8 C 70 0, 18 0, 6 14 C -4 26, 18 38, 52 38 C 84 38, 100 28, 94 14 C 90 6, 80 4, 72 4"/></svg></span><span class="verdict bad"><svg><use href="#cross"/></svg>not equivalent · sign error</span></div></li>
+            <li><span class="n">3</span><div class="row"><span class="math">x = 5</span><span class="verdict ok"><svg><use href="#check"/></svg>follows from line 2</span></div></li>
+          </ol>
+          <p class="margin-note">+3 moved sides but stayed +3</p>
+        </div>
+        <div class="facts">
+          <div class="fact"><h3>Read twice</h3><p>Every photo is read twice. If the two readings disagree on a line, you're asked to confirm it before anything is graded.</p></div>
+          <div class="fact"><h3>Checked exactly</h3><p>Each pair of lines is tested with exact fractions at random values and then proved symbolically. Results are labelled <em>verified</em> or <em>checked numerically</em> so you know how sure it is.</p></div>
+          <div class="fact"><h3>Only the first break</h3><p>Later lines that follow correctly from a mistake aren't marked wrong. You fix one thing at a time.</p></div>
+        </div>
+      </div>
+      <div class="numbers">
+        <div class="num"><b>0 / 300</b><span>false alarms on correct solutions</span></div>
+        <div class="num"><b>297 / 300</b><span>planted mistakes circled on the right line</span></div>
+        <div class="num"><b>80 / 80</b><span>tilted, blurry and dim photos split into the right lines</span></div>
+        <div class="num"><b>20 / 20</b><span>sample photos checked end to end, no false alarms</span></div>
+      </div>
+      <p class="footnote">Measured on generated test sets in the project repository. The 3 missed plants left the step mathematically valid. Accuracy on real handwriting depends on the vision model used.</p>
+    </div>
+  </section>
+
+  <section class="rule">
+    <div class="wrap split flip">
+      <div>
+        <div class="sec-head">
+          <p class="label"><b>04</b> · Stop making the same mistake</p>
+          <h2>It learns which mistakes are yours.</h2>
+          <p>The same few mistakes tend to come back. The app keeps count of yours, then gives you practice aimed at them.</p>
+        </div>
+        <ul class="ticks">
+          <li><svg aria-hidden="true"><use href="#check"/></svg><div><strong>Mistake profile.</strong> <span>“67% of your mistakes this month are sign errors.”</span></div></li>
+          <li><svg aria-hidden="true"><use href="#check"/></svg><div><strong>Targeted practice.</strong> <span>Fresh problems on your weakest skill, brought back on a spaced schedule.</span></div></li>
+          <li><svg aria-hidden="true"><use href="#check"/></svg><div><strong>Why does this rule work?</strong> <span>Short lessons on the idea behind each rule, not just the rule.</span></div></li>
+          <li><svg aria-hidden="true"><use href="#check"/></svg><div><strong>Test prep.</strong> <span>Your top three mistake types and a ten-minute drill the night before.</span></div></li>
+        </ul>
+      </div>
+      <div class="pair">
+        <div class="phone"><img src="img/progress.webp" alt="The progress screen: 67% of your mistakes in the last 30 days are sign errors." loading="lazy" width="585" height="1266"></div>
+        <div class="phone"><img src="img/practice.webp" alt="Practice problems on moving terms across the equals sign." loading="lazy" width="585" height="1266"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="parents" class="rule">
+    <div class="wrap split">
+      <div>
+        <div class="sec-head">
+          <p class="label"><b>05</b> · For parents and tutors</p>
+          <h2>See the patterns, not the homework.</h2>
+          <p>Students can share a private link that shows what they're working on and how it's going. It updates as they practice and can be switched off at any time.</p>
+        </div>
+        <div class="shared">
+          <div><h3>Shared</h3><ul><li>Mistake types</li><li>Topics</li><li>Streaks</li><li>Practice totals</li></ul></div>
+          <div class="no"><h3>Never shared</h3><ul><li>Photos</li><li>Written work</li><li>Answers</li><li>Email address</li></ul></div>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="phone"><img src="img/share.webp" alt="A shared progress page: 67% of Maya's mistakes are sign errors." loading="lazy" width="585" height="1266"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="plans" class="rule">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="label"><b>06</b> · Plans</p>
+        <h2>Free finds your mistake. Plus helps you stop making it.</h2>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <h3>Free</h3>
+          <p>For checking tonight's homework.</p>
+          <ul><li>Guided camera</li><li>A few checks a day</li><li>The red circle and hint 1</li><li>Fix it yourself</li><li>Algebra</li><li>Last 7 days of history</li></ul>
+        </div>
+        <div class="plan main">
+          <h3>Plus</h3>
+          <p>Everything, for one student.</p>
+          <ul><li>Unlimited checks</li><li>All three hints</li><li>Full mistake profile</li><li>Targeted practice and test prep</li><li>Whole-page mode</li><li>Calculus</li><li>Parent and tutor sharing</li></ul>
+        </div>
+        <div class="plan">
+          <h3>Family</h3>
+          <p>Plus for several students.</p>
+          <ul><li>Everything in Plus</li><li>One parent view for all students</li><li>Annual pricing timed to the school year</li></ul>
+        </div>
+      </div>
+      <p class="early">Early access: every plan is free to try while payments are off. No card needed.</p>
+    </div>
+  </section>
+
+  <section id="faq" class="rule">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="label"><b>07</b> · Questions</p>
+        <h2>Things people ask.</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Will it just give my kid the answers?</summary><p>No. It points to the line that broke and names the kind of mistake. Hints go one step at a time, and the final answer only appears if the student specifically asks for it.</p></details>
+        <details><summary>What math does it handle?</summary><p>Algebra: linear equations, inequalities, distributing, combining like terms, exponents, factoring and quadratics. Plus adds derivatives and integrals.</p></details>
+        <details><summary>Does it work with messy handwriting?</summary><p>Usually. The camera waits for a sharp photo, every line is read twice, and anything unclear is shown to you to confirm. You can also type a problem in instead.</p></details>
+        <details><summary>What happens to the photos?</summary><p>They're processed in memory and thrown away. History stays on your device unless you choose to make an account to sync it.</p></details>
+        <details><summary>Do I need an account?</summary><p>No. Accounts are optional, for ages 13 and up, and only used to keep your history across devices.</p></details>
+        <details><summary>Is it an app I download?</summary><p>It runs in your phone's browser. Add it to your home screen and it opens full screen like any other app, and still opens without a connection.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="get" class="rule">
+    <div class="wrap get">
+      <div>
+        <p class="label"><b>08</b> · Get it</p>
+        <h2 style="margin-top:1rem">Check your next problem.</h2>
+        <p class="lede">Open it on your phone, pick a problem you already worked out, and see where it went.</p>
+        <div class="cta"><a class="btn btn-primary" data-app href="#get">Open the app<svg aria-hidden="true"><use href="#arrow"/></svg></a></div>
+        <p class="hero-note" data-app-text hidden></p>
+      </div>
+      <div class="howto">
+        <div><h3>iPhone or iPad</h3><ol><li>Open the app in <b>Safari</b>.</li><li>Tap <b>Share</b>, then <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol></div>
+        <div><h3>Android, Windows or Mac</h3><ol><li>Open the app in <b>Chrome</b> or <b>Edge</b>.</li><li>Open the menu <b>⋮</b>.</li><li>Choose <b>Install app</b>.</li></ol></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><svg aria-hidden="true"><use href="#logo"/></svg>Where Did I Go Wrong?</a>
+    <nav aria-label="Footer">
+      <a href="#how">How it works</a>
+      <a href="#engine">Accuracy</a>
+      <a href="#plans">Plans</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <p>Built for Banana Hacks 2026</p>
+  </div>
+</footer>
+
+<script>
+  // Set this to the address where the app is deployed, e.g. "https://wheredidigowrong.vercel.app".
+  const APP_URL = "";
+  if (APP_URL) {
+    document.querySelectorAll("[data-app]").forEach((a) => { a.href = APP_URL; });
+    document.querySelectorAll("[data-app-text]").forEach((p) => { p.textContent = APP_URL.replace(/^https?:\/\//, ""); p.hidden = false; });
+  }
+</script>
+</body>
+</html>

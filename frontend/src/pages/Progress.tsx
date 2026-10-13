@@ -1,4 +1,5 @@
-import { Award, BarChart3, CalendarCheck, Flame, Share2, Wrench } from 'lucide-react'
+import { Award, BarChart3, CalendarCheck, Flame, Share2, ShieldCheck, Wrench } from 'lucide-react'
+import { Bars, Row } from '../components/Stats'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, EmptyState, LinkButton, LockCard, PageHeader, Segmented } from '../components/ui'
@@ -6,29 +7,6 @@ import { cleanRun, dayStreak, ERROR_LABELS, errorLabel, fixStreak, hasFeature, i
 import { useStore } from '../lib/store'
 
 type Range = '7' | '30' | 'all'
-
-function upperFirst(s: string): string {
-  return s ? s[0].toUpperCase() + s.slice(1) : s
-}
-
-export function Bars({ rows, label }: { rows: { key: string; count: number; pct: number }[]; label: (k: string) => string }) {
-  const max = Math.max(1, ...rows.map((r) => r.count))
-  return (
-    <ul className="space-y-3">
-      {rows.map((r) => (
-        <li key={r.key}>
-          <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-            <span className="truncate font-medium">{upperFirst(label(r.key))}</span>
-            <span className="shrink-0 tabular-nums text-muted">{r.count} · {r.pct}%</span>
-          </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-surface-2">
-            <div className="h-full rounded-full bg-pen" style={{ width: `${(r.count / max) * 100}%` }} />
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
 
 export default function Progress() {
   const { state } = useStore()
@@ -79,7 +57,7 @@ export default function Progress() {
         </Card>
       ) : (
         <Card className="p-5">
-          <p className="text-lg font-semibold">No mistakes in this period. 🎯</p>
+          <p className="text-lg font-semibold">No mistakes in this period.</p>
           <p className="text-sm text-muted">{stats.problems} problem{stats.problems === 1 ? '' : 's'} checked.</p>
         </Card>
       )}
@@ -93,10 +71,10 @@ export default function Progress() {
 
       <Card className="p-5">
         <h2 className="mb-3 font-semibold">Streaks</h2>
-        <ul className="space-y-2 text-[15px]">
-          {top && <li>🧹 <span className="font-medium">{run} problem{run === 1 ? '' : 's'}</span> in a row with no {errorLabel(top.key, true)}</li>}
-          <li>🔧 <span className="font-medium">{fixes} mistake{fixes === 1 ? '' : 's'}</span> in a row fixed by yourself</li>
-          <li>📅 <span className="font-medium">{streak} day{streak === 1 ? '' : 's'}</span> in a row checking your work</li>
+        <ul className="space-y-2.5 text-[15px]">
+          {top && <Row icon={<ShieldCheck className="size-4" />}><span className="font-medium">{run} problem{run === 1 ? '' : 's'}</span> in a row with no {errorLabel(top.key, true)}</Row>}
+          <Row icon={<Wrench className="size-4" />}><span className="font-medium">{fixes} mistake{fixes === 1 ? '' : 's'}</span> in a row fixed by yourself</Row>
+          <Row icon={<CalendarCheck className="size-4" />}><span className="font-medium">{streak} day{streak === 1 ? '' : 's'}</span> in a row checking your work</Row>
         </ul>
       </Card>
 

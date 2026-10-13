@@ -1,4 +1,4 @@
-import { Check, Minus, Sparkles } from 'lucide-react'
+import { Check, Minus } from 'lucide-react'
 import { useState } from 'react'
 import { Button, Card, PageHeader, useToast } from '../components/ui'
 import { api } from '../lib/api'
@@ -84,7 +84,6 @@ function PlanCard({ name, blurb, current, onChoose, cta, highlight = false, busy
     <Card className={`flex flex-col p-5 ${highlight ? 'border-ink' : ''}`}>
       <div className="flex items-center gap-2">
         <p className="text-lg font-semibold">{name}</p>
-        {highlight && <Sparkles className="size-4 text-accent" />}
       </div>
       <p className="mt-1 flex-1 text-sm text-muted">{blurb}</p>
       <Button className="mt-4" variant={current ? 'secondary' : highlight ? 'primary' : 'secondary'} disabled={current} loading={busy} onClick={onChoose}>

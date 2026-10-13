@@ -1,10 +1,22 @@
 {
+  "id": "/",
   "name": "Where Did I Go Wrong?",
   "short_name": "Go Wrong?",
-  "description": "Find the exact line where your math went wrong.",
+  "description": "Snap your handwritten math. We circle the exact line where the first mistake happened, and help you fix it yourself.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f7f6f2",
   "theme_color": "#f7f6f2",
-  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Snap your work", "url": "/capture", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Type your work", "url": "/type", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

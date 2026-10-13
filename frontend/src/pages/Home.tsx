@@ -1,4 +1,4 @@
-import { ArrowRight, Camera, FileText, ImageUp, Layers, Lock, PencilLine, Sparkles } from 'lucide-react'
+import { ArrowRight, Camera, FileText, ImageUp, Layers, Lock, PencilLine, TrendingUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ReadingOverlay } from '../components/ReadingOverlay'
@@ -138,7 +138,7 @@ export default function Home() {
           <Link to="/progress">
             <Card className="flex items-center gap-4 p-4 transition hover:shadow-md">
               <div className="grid size-11 place-items-center rounded-2xl bg-accent-soft text-accent">
-                <Sparkles className="size-5" />
+                <TrendingUp className="size-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium">

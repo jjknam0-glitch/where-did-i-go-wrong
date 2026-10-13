@@ -14,9 +14,9 @@ const NAV = [
 export function Logo({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden>
-      <rect width="64" height="64" rx="16" className="fill-ink" />
-      <path d="M15 24h22M15 33h16M15 42h20" className="stroke-paper" strokeWidth="4" strokeLinecap="round" />
-      <ellipse cx="29" cy="33" rx="20" ry="9" fill="none" className="stroke-pen" strokeWidth="3.5" transform="rotate(-6 29 33)" />
+      <rect width="64" height="64" rx="14" className="fill-ink" />
+      <g className="fill-paper"><rect x="16" y="18.7" width="28" height="2.6" rx="1.3" /><rect x="16" y="30.7" width="22" height="2.6" rx="1.3" /><rect x="16" y="42.7" width="25" height="2.6" rx="1.3" /></g>
+      <ellipse cx="27" cy="32" rx="19" ry="7.5" fill="none" className="stroke-pen" strokeWidth="3" transform="rotate(-5 27 32)" />
     </svg>
   )
 }

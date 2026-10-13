@@ -1,0 +1,7 @@
+{
+  "appId": "app.wheredidigowrong",
+  "appName": "Where Did I Go Wrong?",
+  "webDir": "dist",
+  "server": { "androidScheme": "https" },
+  "backgroundColor": "#f7f6f2"
+}
